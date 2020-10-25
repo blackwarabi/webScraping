@@ -25,7 +25,14 @@ func main() {
 }
 
 func write(file string) {
-	doc, err := goquery.NewDocument("http://momoirocode.web.fc2.com/mocode.html")
+	//jsonファイルの読み込み
+	bytes, jsonerr := ioutil.ReadFile("./context.json")
+	if jsonerr != nil {
+		panic(jsonerr)
+	}
+	// []byte型からjson型へ変換
+	json, _ := simplejson.NewJson(bytes)
+	doc, err := goquery.NewDocument(json.Get("url").MustString())
 	if err != nil {
 		panic(err)
 	}
