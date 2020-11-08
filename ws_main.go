@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"io/ioutil"
+	"log"
 	"net/smtp"
 	"os"
 
@@ -28,18 +29,19 @@ func write(file string) {
 	//jsonファイルの読み込み
 	bytes, jsonerr := ioutil.ReadFile("./context.json")
 	if jsonerr != nil {
-		panic(jsonerr)
+		log.Fatal(jsonerr)
 	}
 	// []byte型からjson型へ変換
 	json, _ := simplejson.NewJson(bytes)
+
 	doc, err := goquery.NewDocument(json.Get("url").MustString())
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	res, _ := doc.Find("textarea").Html()
 	err2 := ioutil.WriteFile(file, []byte(res), 0664)
 	if err2 != nil {
-		panic(err2)
+		log.Fatal(err2)
 	}
 	//fmt.Println(res)
 }
@@ -47,32 +49,20 @@ func write(file string) {
 func comp(filePath string) (rs string) {
 	file, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	scanner := bufio.NewScanner(file)
-	//戻り値用のスライスを宣言
-	var rsSlice []string
-	var cnt int = 0
-	for scanner.Scan() {
-		if cnt > 0 {
-			break
-		}
-		scText := scanner.Text()
-		rsSlice = append(rsSlice, scText)
-		cnt++
-	}
+	scanner.Scan()
+	scText := scanner.Text()
 	defer file.Close()
-	if len(rsSlice) > 0 {
-		return rsSlice[0]
-	}
-	return ""
+	return scText
 }
 
 func sendGmail(message string) {
 	//jsonファイルの読み込み
 	bytes, err := ioutil.ReadFile("./context.json")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// []byte型からjson型へ変換
 	json, _ := simplejson.NewJson(bytes)
@@ -95,6 +85,6 @@ func sendGmail(message string) {
 				message),
 	)
 	if err2 != nil {
-		panic(err)
+		log.Fatal(err2)
 	}
 }
