@@ -19,17 +19,20 @@ const newFile string = "./outFile/new.txt"
 
 //メイン処理
 func main() {
+	log.Print("処理開始")
 	old := readFile(oldFile)
-	write(newFile)
+	writeFile(newFile)
 	new := readFile(newFile)
 	if old != new {
 		sendGmail(new)
 	}
-	write(oldFile)
+	writeFile(oldFile)
+	log.Print("処理終了")
 }
 
 //現在の更新情報を引数のファイルへ書き込み
-func write(file string) {
+func writeFile(file string) {
+	log.Print("writeFileの処理開始")
 	//設定ファイルの読み込み
 	bytes := loadConfigFile()
 	// []byte型からjson型へ変換
@@ -44,11 +47,13 @@ func write(file string) {
 	if err2 != nil {
 		log.Fatal(err2)
 	}
-	//fmt.Println(res)
+	log.Print(res)
+	log.Print("writeFileの処理終了")
 }
 
 //引数のファイルを読み込み、先頭の文字列を返す
 func readFile(filePath string) (rs string) {
+	log.Print("readFileの処理開始")
 	file, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -57,11 +62,13 @@ func readFile(filePath string) (rs string) {
 	scanner.Scan()
 	scText := scanner.Text()
 	defer file.Close()
+	log.Print("readFileの処理終了")
 	return scText
 }
 
 //メール送信
 func sendGmail(message string) {
+	log.Print("sendGmailの処理開始")
 	//設定ファイルの読み込み
 	bytes := loadConfigFile()
 	// []byte型からjson型へ変換
@@ -87,14 +94,17 @@ func sendGmail(message string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("sendGmailの処理終了")
 }
 
 //設定ファイルの読み込み
 func loadConfigFile() []byte {
+	log.Print("loadConfigFileの処理開始")
 	//jsonファイルの読み込み
 	bytes, err := ioutil.ReadFile("./config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Print("loadConfigFileの処理終了")
 	return bytes
 }
