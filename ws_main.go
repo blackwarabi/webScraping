@@ -11,26 +11,27 @@ import (
 	"github.com/bitly/go-simplejson"
 )
 
-const oldFile string = "./old.txt"
+//更新前ファイル
+const oldFile string = "./outFile/old.txt"
 
-const newFile string = "./new.txt"
+//更新後ファイル
+const newFile string = "./outFile/new.txt"
 
+//メイン処理
 func main() {
-	old := comp(oldFile)
+	old := readFile(oldFile)
 	write(newFile)
-	new := comp(newFile)
+	new := readFile(newFile)
 	if old != new {
 		sendGmail(new)
 	}
 	write(oldFile)
 }
 
+//現在の更新情報を引数のファイルへ書き込み
 func write(file string) {
-	//jsonファイルの読み込み
-	bytes, jsonerr := ioutil.ReadFile("./context.json")
-	if jsonerr != nil {
-		log.Fatal(jsonerr)
-	}
+	//設定ファイルの読み込み
+	bytes := loadConfigFile()
 	// []byte型からjson型へ変換
 	json, _ := simplejson.NewJson(bytes)
 
@@ -46,7 +47,8 @@ func write(file string) {
 	//fmt.Println(res)
 }
 
-func comp(filePath string) (rs string) {
+//引数のファイルを読み込み、先頭の文字列を返す
+func readFile(filePath string) (rs string) {
 	file, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -58,12 +60,10 @@ func comp(filePath string) (rs string) {
 	return scText
 }
 
+//メール送信
 func sendGmail(message string) {
-	//jsonファイルの読み込み
-	bytes, err := ioutil.ReadFile("./context.json")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//設定ファイルの読み込み
+	bytes := loadConfigFile()
 	// []byte型からjson型へ変換
 	json, _ := simplejson.NewJson(bytes)
 	auth := smtp.PlainAuth(
@@ -73,7 +73,7 @@ func sendGmail(message string) {
 		"smtp.gmail.com",
 	)
 
-	err2 := smtp.SendMail(
+	err := smtp.SendMail(
 		"smtp.gmail.com:587",
 		auth,
 		json.Get("address").MustString(),
@@ -84,7 +84,17 @@ func sendGmail(message string) {
 				"\r\n"+
 				message),
 	)
-	if err2 != nil {
-		log.Fatal(err2)
+	if err != nil {
+		log.Fatal(err)
 	}
+}
+
+//設定ファイルの読み込み
+func loadConfigFile() []byte {
+	//jsonファイルの読み込み
+	bytes, err := ioutil.ReadFile("./config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bytes
 }
